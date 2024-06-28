@@ -37,15 +37,14 @@ document.addEventListener('DOMContentLoaded', function() {
             calculateFairShare(mainHouseUsage, brotherUsage, bufferPercentage = 10) {
                 const totalBill = this.calculateTotal();
                 const bufferAmount = totalBill * (bufferPercentage / 100);
-                const totalWithBuffer = totalBill + bufferAmount;
                 const totalUsage = mainHouseUsage + brotherUsage;
                 const brotherProportion = brotherUsage / totalUsage;
                 const mainHouseProportion = mainHouseUsage / totalUsage;
 
-                const brotherShare = totalWithBuffer * brotherProportion;
-                const mainHouseShare = totalWithBuffer * mainHouseProportion;
+                const brotherShare = (totalBill + bufferAmount) * brotherProportion;
+                const mainHouseShare = (totalBill + bufferAmount) * mainHouseProportion;
 
-                return { brotherShare, mainHouseShare, brotherProportion, totalBill };
+                return { brotherShare, mainHouseShare, brotherProportion };
             }
         }
 
@@ -60,17 +59,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const mainHouseUsage = 1.0;  // Assumed proportion for the main house
         const brotherUsage = 0.35;    // Assumed proportion for the brother
 
-        const { brotherShare, mainHouseShare, brotherProportion, totalBill } = utilityBills.calculateFairShare(mainHouseUsage, brotherUsage);
+        const { brotherShare, mainHouseShare, brotherProportion } = utilityBills.calculateFairShare(mainHouseUsage, brotherUsage);
 
         brotherShareElement.textContent = `Brother's share: $${brotherShare.toFixed(2)}`;
         mainHouseShareElement.textContent = `Main house share: $${mainHouseShare.toFixed(2)}`;
 
-        // Calculate individual bill shares based on the total brother's share proportion
-        const brotherElectricityShare = (electricityBill / totalBill) * brotherShare;
-        const brotherWaterShare = (waterBill / totalBill) * brotherShare;
-        const brotherInternetShare = (internetBill / totalBill) * brotherShare;
-        const brotherGasShare = (gasBill / totalBill) * brotherShare;
-        const brotherTrashShare = (trashBill / totalBill) * brotherShare;
+        // Calculate individual bill shares
+        const brotherElectricityShare = electricityBill * brotherProportion;
+        const brotherWaterShare = waterBill * brotherProportion;
+        const brotherInternetShare = internetBill * brotherProportion;
+        const brotherGasShare = gasBill * brotherProportion;
+        const brotherTrashShare = trashBill * brotherProportion;
 
         // Update individual bill shares
         brotherElectricityElement.textContent = `Electricity: $${brotherElectricityShare.toFixed(2)}`;
