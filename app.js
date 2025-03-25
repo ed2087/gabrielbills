@@ -1,88 +1,135 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const electricityInput = document.getElementById('electricity');
-    const waterInput = document.getElementById('water');
-    const internetInput = document.getElementById('internet');
-    const gasInput = document.getElementById('gas');
-    const trashInput = document.getElementById('trash');
+document.addEventListener('DOMContentLoaded', function () {
+    const API_KEY = '2fc7a87c1854c435117496be42ed0808';
+    const LOCATION = 'Charlotte'; // Change if needed
 
-    const brotherShareElement = document.getElementById('brother-share');
-    const mainHouseShareElement = document.getElementById('main-house-share');
+    const inputs = {
+        electricity: document.getElementById('electricity'),
+        water: document.getElementById('water'),
+        internet: document.getElementById('internet'),
+        gas: document.getElementById('gas'),
+        trash: document.getElementById('trash')
+    };
 
-    const brotherElectricityElement = document.getElementById('brother-electricity');
-    const brotherWaterElement = document.getElementById('brother-water');
-    const brotherInternetElement = document.getElementById('brother-internet');
-    const brotherGasElement = document.getElementById('brother-gas');
-    const brotherTrashElement = document.getElementById('brother-trash');
+    const output = {
+        brotherShare: document.getElementById('brother-share'),
+        mainHouseShare: document.getElementById('main-house-share'),
+        breakdown: {
+            electricity: document.getElementById('brother-electricity'),
+            water: document.getElementById('brother-water'),
+            internet: document.getElementById('brother-internet'),
+            gas: document.getElementById('brother-gas'),
+            trash: document.getElementById('brother-trash')
+        },
+        summary: document.getElementById('summary-section')
+    };
 
-    function calculateAndDisplayShares() {
-        const electricityBill = parseFloat(electricityInput.value) || 0;
-        const waterBill = parseFloat(waterInput.value) || 0;
-        const internetBill = parseFloat(internetInput.value) || 0;
-        const gasBill = parseFloat(gasInput.value) || 0;
-        const trashBill = parseFloat(trashInput.value) || 0;
+    let averageTemp = 72; // fallback in case API fails
 
-        class UtilityBills {
-            constructor() {
-                this.bills = [];
-            }
-
-            addBill(name, amount) {
-                this.bills.push({ name, amount });
-            }
-
-            calculateTotal() {
-                return this.bills.reduce((total, bill) => total + bill.amount, 0);
-            }
-
-            calculateFairShare(mainHouseUsage, brotherUsage, bufferPercentage = 10) {
-                const totalBill = this.calculateTotal();
-                const bufferAmount = totalBill * (bufferPercentage / 100);
-                const totalUsage = mainHouseUsage + brotherUsage;
-                const brotherProportion = brotherUsage / totalUsage;
-                const mainHouseProportion = mainHouseUsage / totalUsage;
-
-                const adjustedTotalBill = totalBill + bufferAmount;
-                const brotherShare = adjustedTotalBill * brotherProportion;
-                const mainHouseShare = adjustedTotalBill * mainHouseProportion;
-
-                return { brotherShare, mainHouseShare, brotherProportion, adjustedTotalBill };
-            }
+    class UtilityBills {
+        constructor() {
+            this.bills = [];
         }
 
-        const utilityBills = new UtilityBills();
+        add(name, amount) {
+            this.bills.push({ name, amount });
+        }
 
-        utilityBills.addBill('Electricity', electricityBill);
-        utilityBills.addBill('Water', waterBill);
-        utilityBills.addBill('Internet', internetBill);
-        utilityBills.addBill('Gas', gasBill);
-        utilityBills.addBill('Trash', trashBill);
+        total() {
+            return this.bills.reduce((sum, bill) => sum + bill.amount, 0);
+        }
 
-        const mainHouseUsage = 1.0;  // Assumed proportion for the main house
-        const brotherUsage = 0.38;    // Assumed proportion for the brother
+        calculateShares(mainUsage, brotherUsage, bufferPercent = 12) {
+            const totalBill = this.total();
+            const buffer = totalBill * (bufferPercent / 100);
+            const adjustedTotal = totalBill + buffer;
 
-        const { brotherShare, mainHouseShare, brotherProportion, adjustedTotalBill } = utilityBills.calculateFairShare(mainHouseUsage, brotherUsage);
+            const totalUsage = mainUsage + brotherUsage;
+            const brotherProportion = brotherUsage / totalUsage;
 
-        brotherShareElement.textContent = `Brother's share: $${brotherShare.toFixed(2)}`;
-        mainHouseShareElement.textContent = `Main house share: $${mainHouseShare.toFixed(2)}`;
-
-        // Calculate individual bill shares with buffer included
-        const brotherElectricityShare = (electricityBill / utilityBills.calculateTotal()) * (adjustedTotalBill * brotherProportion);
-        const brotherWaterShare = (waterBill / utilityBills.calculateTotal()) * (adjustedTotalBill * brotherProportion);
-        const brotherInternetShare = (internetBill / utilityBills.calculateTotal()) * (adjustedTotalBill * brotherProportion);
-        const brotherGasShare = (gasBill / utilityBills.calculateTotal()) * (adjustedTotalBill * brotherProportion);
-        const brotherTrashShare = (trashBill / utilityBills.calculateTotal()) * (adjustedTotalBill * brotherProportion);
-
-        // Update individual bill shares
-        brotherElectricityElement.textContent = `Electricity: $${brotherElectricityShare.toFixed(2)}`;
-        brotherWaterElement.textContent = `Water: $${brotherWaterShare.toFixed(2)}`;
-        brotherInternetElement.textContent = `Internet: $${brotherInternetShare.toFixed(2)}`;
-        brotherGasElement.textContent = `Gas: $${brotherGasShare.toFixed(2)}`;
-        brotherTrashElement.textContent = `Trash: $${brotherTrashShare.toFixed(2)}`;
+            return {
+                adjustedTotal,
+                brotherProportion,
+                brotherShare: adjustedTotal * brotherProportion
+            };
+        }
     }
 
-    electricityInput.addEventListener('input', calculateAndDisplayShares);
-    waterInput.addEventListener('input', calculateAndDisplayShares);
-    internetInput.addEventListener('input', calculateAndDisplayShares);
-    gasInput.addEventListener('input', calculateAndDisplayShares);
-    trashInput.addEventListener('input', calculateAndDisplayShares);
+    function updateSummary(brotherUsage) {
+        let note = "No major adjustment.";
+        if (averageTemp > 75) note = "Hot month. AC usage likely higher.";
+        else if (averageTemp < 60) note = "Cold month. Heating may increase costs.";
+
+        output.summary.innerHTML = `
+            <h3>Usage Summary & Environment</h3>
+            <div class="results">
+                <div class="result-item"><p><strong>Total Residents:</strong> 7 (2 adults + 4 kids + 1 brother)</p></div>
+                <div class="result-item"><p><strong>Brother’s Usage Weight:</strong> ${(brotherUsage * 100).toFixed(1)}%</p></div>
+                <div class="result-item"><p><strong>Average Temperature:</strong> ${averageTemp}°F</p></div>
+                <div class="result-item"><p><strong>Temp Impact:</strong> ${note}</p></div>
+            </div>
+        `;
+    }
+
+    function calculateAndDisplay() {
+        const bills = new UtilityBills();
+
+        const values = {
+            electricity: parseFloat(inputs.electricity.value) || 0,
+            water: parseFloat(inputs.water.value) || 0,
+            internet: parseFloat(inputs.internet.value) || 0,
+            gas: parseFloat(inputs.gas.value) || 0,
+            trash: parseFloat(inputs.trash.value) || 0
+        };
+
+        Object.entries(values).forEach(([name, amount]) => bills.add(name, amount));
+
+        const mainUsage = 1.0;
+        const brotherUsage = 0.38;
+        const buffer = averageTemp > 75 ? 15 : 12;
+
+        const { adjustedTotal, brotherProportion, brotherShare } = bills.calculateShares(mainUsage, brotherUsage, buffer);
+        const originalTotal = bills.total();
+        const mainShare = originalTotal - brotherShare;
+
+        output.brotherShare.textContent = `Brother's share: $${brotherShare.toFixed(2)}`;
+        output.mainHouseShare.textContent = `Main house share: $${mainShare.toFixed(2)}`;
+
+        Object.entries(values).forEach(([name, amount]) => {
+            const share = (amount / originalTotal) * (adjustedTotal * brotherProportion);
+            output.breakdown[name].textContent = `${capitalize(name)}: $${share.toFixed(2)}`;
+        });
+
+        updateSummary(brotherUsage);
+    }
+
+    function capitalize(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    function fetchWeatherAndInit() {
+        const url = `http://api.weatherstack.com/current?access_key=${API_KEY}&query=${LOCATION}&units=f`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.current && data.current.temperature) {
+                    averageTemp = data.current.temperature;
+                    console.log(`🌡️ Real-time temp: ${averageTemp}°F`);
+                } else {
+                    console.warn("⚠️ Weather data missing, using default temp.");
+                }
+                init();
+            })
+            .catch(err => {
+                console.error("❌ Weather fetch failed:", err);
+                init(); // still run app even if weather fails
+            });
+    }
+
+    function init() {
+        Object.values(inputs).forEach(input => input.addEventListener('input', calculateAndDisplay));
+        calculateAndDisplay();
+    }
+
+    fetchWeatherAndInit();
 });
