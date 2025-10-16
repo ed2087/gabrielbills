@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bill Share Calculator</title>
+  <title>Calculadora de Facturas</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
-      margin: 0;
-      padding: 0;
-    }
-
-    main {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 4em 0;
+      padding: 20px;
     }
 
     .container {
@@ -24,137 +22,127 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      max-width: 800px;
-      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #333;
       text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.5em;
     }
 
-    .input-section,
-    .result-section,
-    .summary-section {
-      padding: 10px;
+    h2 {
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-size: 1.2em;
     }
 
-    input {
+    h3 {
+      color: #555;
+      margin-top: 15px;
       margin-bottom: 10px;
-      width: calc(100% - 22px);
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
+      font-size: 1em;
     }
 
     label {
       font-weight: bold;
       display: block;
       margin-bottom: 5px;
-    }
-
-    h1, h2, h3 {
       color: #333;
     }
 
-    .due-date {
-      font-size: 0.9em;
-      color: #777;
-      margin-bottom: 15px;
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 5px;
     }
 
-    .results {
-      margin-top: 20px;
+    .due-date {
+      font-size: 0.85em;
+      color: #777;
+      margin-bottom: 15px;
     }
 
     .result-item {
       margin-bottom: 10px;
       background-color: rgba(0, 123, 255, 0.1);
-      padding: 10px;
+      padding: 12px;
       border-radius: 5px;
     }
 
-    .summary-section .result-item {
-      background-color: rgba(0, 200, 100, 0.1);
+    .result-item p {
+      margin: 0;
+      font-size: 1em;
     }
 
-    @media (min-width: 768px) {
-      .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
       }
 
-      .input-section,
-      .result-section,
-      .summary-section {
-        width: 90%;
-        text-align: left;
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.3em;
+      }
+
+      input {
+        font-size: 14px;
       }
     }
   </style>
 </head>
 <body>
-  <main>
-    <div class="container">
-      <div class="input-section">
-        <h1>Bill Share Calculator</h1>
+  <div class="container">
+    <div class="input-section">
+      <h1>Calculadora de Facturas</h1>
 
-        <label for="electricity">Electricity Bill:</label>
-        <input type="number" id="electricity" name="electricity" step="0.01" />
-        <p class="due-date">Due before the 25th of each month</p>
+      <label for="electricity">Factura de Electricidad:</label>
+      <input type="number" id="electricity" step="0.01" placeholder="0.00" />
+      <p class="due-date">Vence antes del 25 de cada mes</p>
 
-        <label for="water">Water Bill:</label>
-        <input type="number" id="water" name="water" step="0.01" />
-        <p class="due-date">Due before the 14th of each month</p>
+      <label for="water">Factura de Agua:</label>
+      <input type="number" id="water" step="0.01" placeholder="0.00" />
+      <p class="due-date">Vence antes del 14 de cada mes</p>
 
-        <label for="internet">Internet Bill:</label>
-        <input type="number" id="internet" name="internet" step="0.01" />
-        <p class="due-date">Due before the 25th of each month</p>
+      <label for="gas">Factura de Gas:</label>
+      <input type="number" id="gas" step="0.01" placeholder="0.00" />
+      <p class="due-date">Vence antes del 25 de cada mes</p>
+    </div>
 
-        <label for="gas">Gas Bill:</label>
-        <input type="number" id="gas" name="gas" step="0.01" />
-        <p class="due-date">Due before the 25th of each month</p>
-
-        <label for="trash">Trash Bill:</label>
-        <input type="number" id="trash" name="trash" step="0.01" />
-        <p class="due-date">Due before the 1st of each month</p>
+    <div class="result-section">
+      <h2>Resultados</h2>
+      <div class="result-item">
+        <p id="brother-share"><strong>Tu parte a pagar:</strong> $0.00</p>
+      </div>
+      <div class="result-item">
+        <p id="main-house-share"><strong>Parte de la casa principal:</strong> $0.00</p>
       </div>
 
-      <div class="result-section">
-        <h2>Results</h2>
-        <div class="results">
-          <div class="result-item">
-            <p id="brother-share">Brother's share: $0.00</p>
-          </div>
-          <div class="result-item">
-            <p id="main-house-share">Main house share: $0.00</p>
-          </div>
-        </div>
-
-        <h3>Brother's Breakdown</h3>
-        <div class="results">
-          <div class="result-item">
-            <p id="brother-electricity">Electricity: $0.00</p>
-          </div>
-          <div class="result-item">
-            <p id="brother-water">Water: $0.00</p>
-          </div>
-          <div class="result-item">
-            <p id="brother-internet">Internet: $0.00</p>
-          </div>
-          <div class="result-item">
-            <p id="brother-gas">Gas: $0.00</p>
-          </div>
-          <div class="result-item">
-            <p id="brother-trash">Trash: $0.00</p>
-          </div>
-        </div>
+      <h3>Tu Desglose</h3>
+      <div class="result-item">
+        <p id="brother-electricity">Electricidad: $0.00</p>
       </div>
-
-      <!-- This summary section will be injected by JS -->
-      <div class="summary-section" id="summary-section">
-        <!-- Live data injected via JS -->
+      <div class="result-item">
+        <p id="brother-water">Agua: $0.00</p>
+      </div>
+      <div class="result-item">
+        <p id="brother-gas">Gas: $0.00</p>
       </div>
     </div>
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
